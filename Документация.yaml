@@ -1,0 +1,332 @@
+openapi: 3.0.0
+info:
+  title: Спецификация для система передачи показаний счетчиков
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+servers:
+  - url: http://localhost:8080/api/v1/
+    description: Dev server  
+  
+paths:
+  /auth/users/:
+    post:
+      summary: Регистрация пользователя
+      operationId: registarion
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegister"
+      responses:
+        '200':
+          description: Пользова зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          description: Неизвестная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /auth/token/login/:
+    post:
+      summary: Вход в систему
+      operationId: postAuth
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Login"
+      responses:
+        '200':
+          description: Токен авторизации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        default:
+          description: Неизвестная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /notes/:
+    post:
+      summary: Созадния записи
+      operationId: createNote
+      tags:
+        - Notes
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          required: true
+          example: Token a8342778d31008c9061cc6e94f96bcddeff8d105
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteDetail"
+      responses:
+        '201':
+          description: Запсь создана успешно
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+        default:
+          description: Неизвестная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      summary: Получение спсика записей
+      operationId: getNotes
+      tags:
+        - Notes
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          required: false
+          example: Token a8342778d31008c9061cc6e94f96bcddeff8d105
+        - name: owner
+          in: query
+          schema:
+            type: integer
+          required: false
+          example: 1
+          description: Фильтр на автора заметки
+        - name: created_at
+          in: query
+          schema:
+            type: string
+          required: false
+          example: 2024-05-12
+          description: Фильтр на дату создания заметки
+        - name: created_at__gte
+          in: query
+          schema:
+            type: string
+          required: false
+          example: 2024-05-12
+          description: Фильтр на девую границу интервала даты создания заметки
+        - name: created_at__lte
+          in: query
+          schema:
+            type: string
+          required: false
+          example: 2024-05-12
+          description: Фильтр на правую границу интервала даты создания заметки
+      responses:
+        '200':
+          description: Список записей удовлетворяющих фильтрам
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+        default:
+          description: Неизвестная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /notes/{note_id}/:
+    get:
+      summary: Получение отдельной записи
+      operationId: getNoteById
+      tags:
+        - Notes
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          required: false
+          example: Token a8342778d31008c9061cc6e94f96bcddeff8d105
+        - name: note_id
+          in: path
+          description: Идентификатор записи
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Отдельная запись
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+        default:
+          description: Неизвестная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Редактирование записи
+      operationId: putNoteById
+      description: Редактировать записи могут только их создатели
+      tags:
+        - Notes
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          required: true
+          example: Token a8342778d31008c9061cc6e94f96bcddeff8d105
+        - name: note_id
+          in: path
+          description: Идентификатор записи
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Обновленная запись
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+        default:
+          description: Неизвестная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Удаление записи
+      operationId: deleteNoteById
+      description: Удалять записи могут только их создатели
+      tags:
+        - Notes
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          required: true
+          example: Token a8342778d31008c9061cc6e94f96bcddeff8d105
+        - name: note_id
+          in: path
+          description: Идентификатор записи
+          schema:
+            type: integer
+          required: true
+      responses:
+        '204':
+          description: Запись удалена успешно
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+        default:
+          description: Неизвестная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Token:
+      type: object
+      required:
+        - auth_token
+      properties:
+        auth_token:
+          type: string
+          example: 'cb3260d4dad106e3cccbb0bf2061eda7d7475f45'
+    Login:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: 'admin'
+        password:
+          type: string
+          example: 'huh8YVhkh-3dn'
+    UserRegister:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: 'admin'
+        password:
+          type: string
+          example: 'huh8YVhkh-3dn'
+        email:
+          type: string
+          example: 'username@damain.ru'
+    User:
+      type: object
+      required:
+        - id
+        - username
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: 'admin'
+        email:
+          type: string
+          example: 'username@damain.ru'
+    Note:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - created_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: 'Приветствие'
+        description:
+          type: string
+          example: 'Hellow world'
+        created_at:
+          type: string
+          example: '2024-05-11T17:56:08.000327Z'
+    NoteDetail:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+          example: 'Приветствие'
+        description:
+          type: string
+          example: 'Hellow world'
+    Error:
+      type: object
+          
