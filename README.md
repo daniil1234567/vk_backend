@@ -1,3 +1,3 @@
 # vk_backend
 Ссылка на сервер
-https://yetap.ru
+http://213.171.6.158:8000
